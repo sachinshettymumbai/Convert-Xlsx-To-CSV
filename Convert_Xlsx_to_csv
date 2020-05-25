@@ -1,0 +1,29 @@
+Function ExcelToCsv ($File) {
+    $excelFile =  $File + "xlsx"
+    $excel = New-Object -ComObject Excel.Application
+    $excel.Visible = $true
+    $excel.DisplayAlerts =$false
+    # Get Windows handle of the application
+    $excelWinHwnd = $excel.Hwnd
+
+    # Get Process Id of the application
+    $process = Get-Process Excel | Where-Object {$_.MainWindowHandle -eq $excelWinHwnd}
+    $excelProcessId = $process.Id
+
+    $wb = $excel.Workbooks.Open($excelFile)
+    $ws = $wb.worksheets.Item(1)
+ 	
+    $ws.SaveAs( $File + ".csv", 6)
+    $excel.Quit()
+    $excel.Visible = $false
+    # Kill/Stop the process by id
+    Stop-Process -Id $excelProcessId
+
+}
+
+$FileName = $args[0]
+$FileNameLength=$Filename.Length
+$FileName =$FileName.Substring(0,$FileNameLength-4)
+ExcelToCsv -File $FileName
+
+Remove-Item -path $args[0]
